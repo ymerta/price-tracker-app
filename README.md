@@ -1,4 +1,6 @@
 # Price Tracker
+<img width="1000" alt="Ekran Resmi 2025-07-09 00 50 01" src="https://github.com/user-attachments/assets/1ebe30ee-01c4-4467-bc2a-29c87d6dcbbc" />
+<img width="1000" alt="Ekran Resmi 2025-07-09 00 51 34" src="https://github.com/user-attachments/assets/dcc21a23-ada6-4129-9b49-45a6a57caab6" />
 
 **Price Tracker** is a full-stack demo application that tracks product prices from various sources such as **Amazon**, **eBay**, **Idealo**, and **Otto**, using the [RapidAPI - Price Analytics API](https://rapidapi.com/letscrape-6bRBa3QguO5/api/price-analytics/).
 
