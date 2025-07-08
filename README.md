@@ -1,4 +1,5 @@
 # Price Tracker
+<img width="1000" alt="Ekran Resmi 2025-07-08 23 32 08" src="https://github.com/user-attachments/assets/c33b4126-10e3-4dec-8084-3b7fc53446f1" />
 <img width="1000" alt="Ekran Resmi 2025-07-09 00 50 01" src="https://github.com/user-attachments/assets/1ebe30ee-01c4-4467-bc2a-29c87d6dcbbc" />
 <img width="1000" alt="Ekran Resmi 2025-07-09 00 51 34" src="https://github.com/user-attachments/assets/dcc21a23-ada6-4129-9b49-45a6a57caab6" />
 
