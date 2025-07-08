@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Price Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <h1 class="mb-4">Price Tracker</h1>
+
+    <form id="searchForm" class="input-group mb-4">
+        <input type="text" class="form-control" id="searchInput" placeholder="Enter product name (e.g., iPhone)" />
+        <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+
+    <button class="btn btn-outline-secondary mb-4" onclick="sortByPrice()">🔽 Sort All by Price</button>
+
+    <div id="statusMessage" class="mb-3 text-muted">🕐 Waiting for input...</div>
+    <div id="results" class="row g-4"></div>
+</div>
+
+<script>
+    const form = document.getElementById("searchForm");
+    const input = document.getElementById("searchInput");
+    const results = document.getElementById("results");
+    const statusMessage = document.getElementById("statusMessage");
+
+    let allOffers = []; // 🌍 tüm kaynaklardaki ürünleri burada biriktir
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        results.innerHTML = "";
+        allOffers = []; // 🔄 önceki ürünleri temizle
+        statusMessage.innerText = "🔄 Creating jobs...";
+        const term = input.value;
+
+        try {
+            const createRes = await fetch(`/api/price/create-job?term=${term}`);
+            const createData = await createRes.json();
+            const jobIds = createData.job_ids;
+
+            if (!jobIds || jobIds.length === 0) {
+                statusMessage.innerText = "❌ No jobs created!";
+                return;
+            }
+
+            statusMessage.innerText = `📡 Polling ${jobIds.length} jobs...`;
+
+            jobIds.forEach(jobId => {
+                pollAndShow(jobId);
+            });
+
+        } catch (err) {
+            console.error(err);
+            statusMessage.innerText = "❌ Failed to create jobs.";
+        }
+    });
+
+    async function pollAndShow(jobId) {
+        const pollInterval = setInterval(async () => {
+            const pollRes = await fetch(`/api/price/poll-job?jobId=${jobId}`);
+            const pollData = await pollRes.json();
+
+            if (pollData.error) {
+                clearInterval(pollInterval);
+                console.error("Polling error for job:", jobId);
+                return;
+            }
+
+            if (pollData.status === "finished") {
+                clearInterval(pollInterval);
+                const offers = pollData.results[0].content.offers;
+                const source = pollData.results[0].query.source;
+                showResults(offers, source);
+            }
+        }, 3000);
+    }
+
+    function showResults(offers, source) {
+        const section = document.createElement("div");
+        section.className = "mb-4";
+        section.innerHTML = `<h4 class="mb-3">${source.toUpperCase()} Results:</h4><div class="row g-4" id="group-${source}"></div>`;
+        results.appendChild(section);
+
+        const groupContainer = document.getElementById(`group-${source}`);
+
+        offers.forEach((offer) => {
+            if (offer.price) {
+                allOffers.push(offer);
+                const link = offer.link?.url || "#";
+                const imageUrl = offer.image || "https://geogold.hu/wp-content/uploads/2023/10/Vertical-Placeholder-Image.jpg";
+
+                groupContainer.innerHTML += `
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <a href="${link}" target="_blank" style="text-decoration: none; color: inherit;">
+                        <div class="card h-100 shadow-sm">
+                            ${offer.image ? `<img src="${offer.image}" class="card-img-top" alt="Product Image"` : ""}
+                            <div class="card-body">
+                                <h5 class="card-title">${offer.name.slice(0, 60)}...</h5>
+                                <p class="card-text"><strong>€${offer.price}</strong></p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            `;
+            }
+        });
+
+        if (groupContainer.innerHTML === "") {
+            groupContainer.innerHTML = `<p class="text-danger">No valid results found with price.</p>`;
+        }
+    }
+
+    function sortByPrice() {
+        if (allOffers.length === 0) {
+            alert("No products to sort yet!");
+            return;
+        }
+
+        const sorted = [...allOffers].sort((a, b) => a.price - b.price);
+
+        results.innerHTML = `
+        <h4 class="mb-3">💰 Sorted by Price:</h4>
+        <div class="row g-4" id="sortedResults"></div>
+    `;
+
+        const container = document.getElementById("sortedResults");
+
+        sorted.forEach((offer) => {
+            const link = offer.link?.url || "#";
+            const imageUrl = offer.image || "https://geogold.hu/wp-content/uploads/2023/10/Vertical-Placeholder-Image.jpg";
+
+            const col = document.createElement("div");
+            col.className = "col-lg-3 col-md-4 col-sm-6";
+
+            col.innerHTML = `
+            <a href="${link}" target="_blank" style="text-decoration: none; color: inherit;">
+                <div class="card h-100 shadow-sm">
+                    ${offer.image ? `<img src="${offer.image}" class="card-img-top" alt="Product Image"` : ""}
+                    <div class="card-body">
+                        <h5 class="card-title">${offer.name.slice(0, 60)}...</h5>
+                        <p class="card-text"><strong>€${offer.price}</strong></p>
+                    </div>
+                </div>
+            </a>
+        `;
+
+            container.appendChild(col);
+        });
+    }
+</script>
+
+</body>
+</html>
